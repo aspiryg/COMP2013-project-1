@@ -1,7 +1,7 @@
 #root {
   width: 100%;
-  max-width: 1200px;
-  min-width: 1150px;
+  /* max-width: 1200px; */
+  /* min-width: 1150px; */
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -38,7 +38,7 @@
 }
 
 .GroceriesApp-Container {
-  width: 100%;
+  /* width: 100%; */
   display: flex;
   justify-content: space-between;
 
@@ -60,38 +60,20 @@
 
 .CartCard {
   display: flex;
-  /* flex-direction: column; */
   justify-content: space-around;
   align-items: center;
-  /* flex-wrap: wrap; */
-  border: 2px wheat solid;
-  border-radius: 10px;
   margin: 10px;
-  padding: 5px;
-  background-color: rgb(43, 48, 54);
+  padding: 15px;
+  background-color: rgb(39, 38, 48);
+  /* border: 1px solid white; */
+  border: 0.5px solid rgb(73, 72, 72);
+  border-radius: 8px;
 }
 
 .CartCardInfo {
   /* display: flex;
   justify-content: space-around; */
   width: 50%;
-}
-
-.ProductsContainer {
-  width: 75%;
-  max-width: 800px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  /* border: 1px solid white; */
-}
-
-.ProductCard {
-  width: 20%;
-  border: 2px wheat solid;
-  border-radius: 10px;
-  margin: 10px;
-  padding: 5px;
 }
 
 .ProductQuantityDiv {
@@ -150,4 +132,84 @@ img {
 #BuyButton {
   background-color: green;
   width: 50%;
+}
+
+/* My Classes */
+.nav-cart-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -12px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+.nav-cart {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  margin-right: 20px;
+  &:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s;
+  }
+}
+
+.product-container-full {
+  margin-top: 21px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.product-container-seventy-five {
+  margin-top: 21px;
+  width: 75%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.product-card {
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  background-color: rgb(56, 50, 82);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cart-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+/*  */
+@media (max-width: 1024px) {
+  .product-container-full,
+  .product-container-seventy-five {
+    width: 100%;
+  }
+
+  .GroceriesApp-Container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .CartContainer {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .NavUser {
+    display: none;
+  }
 }
