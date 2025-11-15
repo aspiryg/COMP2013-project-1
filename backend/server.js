@@ -12,7 +12,8 @@ import Product from "./models/Product.js";
 
 // Load environment variables
 dotenv.config();
-//
+
+// Initialization
 const server = express();
 const PORT = process.env.PORT || 3000;
 const DB_URI = process.env.DB_URI;
@@ -54,13 +55,14 @@ server.get("/products", async (request, response) => {
 
 // Add a new Product - POST /products
 server.post("/products", async (request, response) => {
-  const { productName, brand, image, price } = request.body;
+  const { productName, brand, image, price, quantity } = request.body;
   try {
     const newProduct = new Product({
       productName,
       brand,
       image,
       price,
+      quantity,
     });
     const savedProduct = await newProduct.save();
     response
@@ -109,13 +111,13 @@ server.get("/products/:id", async (request, response) => {
 });
 
 // Update a Product by ID - PUT /products/:id
-server.put("/products/:id", async (request, response) => {
+server.patch("/products/:id", async (request, response) => {
   const productId = request.params.id;
-  const { productName, brand, image, price } = request.body;
+  const { productName, brand, image, price, quantity } = request.body;
   try {
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
-      { productName, brand, image, price },
+      { productName, brand, image, price, quantity },
       { new: true } // to return the updated document after update (not the original one), Thsi can be useful on the frontend
     );
     if (!updatedProduct) {

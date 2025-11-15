@@ -5,6 +5,8 @@ export default function ProductsContainer({
   handleQuantityChange,
   handleAddToCart,
   isCartVisible,
+  handleOnEdit,
+  handleDeleteProduct,
 }) {
   return (
     <div
@@ -17,10 +19,12 @@ export default function ProductsContainer({
       {products.map((product) => {
         return (
           <ProductCard
-            key={product.id}
+            key={product._id}
             {...product}
             handleQuantityChange={handleQuantityChange}
             handleAddToCart={handleAddToCart}
+            handleOnEdit={handleOnEdit}
+            handleDeleteProduct={handleDeleteProduct}
           />
         );
       })}

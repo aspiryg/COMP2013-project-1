@@ -1,38 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import ProductsContainer from "./ProductsContainer";
 import CartContainer from "./CartContainer";
+import ProductsForm from "./ProductsForm";
 import NavBar from "./NavBar";
 
-export default function GroceriesAppContainer({ products }) {
+const BaseUrl = "http://localhost:3000/products"; // Backend server URL
+
+export default function GroceriesAppContainer() {
   // States
   // state #1: Product List State
-  const [productList, setProductList] = useState(
-    products.map((product) => ({
-      ...product,
-      // Represent sales quantity (the quantity user wants to buy)
-      salesQuantity: 0,
-      // Represent inventory quantity (the quantity available in stock)
-      inventoryQuantity: parseQuantity(product.quantity),
-      // Represent price (as a number)
-      priceNumber: parsePrice(product.price),
-    }))
-  );
+  const [productList, setProductList] = useState([]);
+  const [formData, setFormData] = useState({
+    productName: "",
+    brand: "",
+    price: "",
+    image: "",
+    quantity: "",
+    unit: "", // this field is not stored in the backend, it's just for the form (while submission it will be concatenated with quantity)
+    _id: "", //
+  });
+
   // state #2: Cart State
   const [cart, setCart] = useState([]);
-  // console.log("Cart:", cart);
-
   // state #3: toggle cart appearance (for Challenge 1)
   const [isCartVisible, setIsCartVisible] = useState(false);
+  // state #4: toggle products form appearance
+  const [isProductsFormVisible, setIsProductsFormVisible] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // utility functions
   // util #1: convert product quantity to a number (to use is it in available stock calculations)
-  function parseQuantity(qtyStr) {
+  function parseQuantity(qtyStr = "") {
+    // console.log("Parsing quantity:", qtyStr);
     const qtyNumber = parseInt(qtyStr);
     return isNaN(qtyNumber) ? 0 : qtyNumber;
   }
 
   // util #2: convert price string to a number
-  function parsePrice(priceStr) {
+  function parsePrice(priceStr = "") {
+    // console.log("Parsing price:", priceStr);
     const priceNumber = parseFloat(priceStr.replace("$", "").replace(",", ""));
     return isNaN(priceNumber) ? 0 : priceNumber;
   }
@@ -48,14 +55,204 @@ export default function GroceriesAppContainer({ products }) {
     return newQuantity;
   }
 
-  // Event Handlers
+  // Handler functions
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(BaseUrl);
+      const products = response.data;
+
+      // re-building the product object to be be compatible with my previous project implementation
+      const updatedProducts = products.map((product) => {
+        const quantity = product.quantity || "10 g"; // default quantity if not provided
+        const inventoryQuantity = parseQuantity(quantity);
+        const priceNumber = parsePrice(product.price);
+        return {
+          ...product,
+          quantity, // original quantity string
+          inventoryQuantity, // available stock quantity (number)
+          priceNumber, // price as number
+          salesQuantity: 0, // initial sales quantity (this represents the quantity user wants to buy)
+        };
+      });
+      setProductList(updatedProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // handle form input changes
+  const handleOnChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // handle on submit
+  const handleOnSubmit = (e) => {
+    e.preventDefault();
+    if (isEditMode) {
+      handleUpdateProduct();
+    } else {
+      handleAddNewProduct();
+    }
+    resetForm();
+  };
+
+  // handle add new product.
+  const handleAddNewProduct = async () => {
+    // #1: validate inputs
+    if (
+      !formData.productName ||
+      !formData.brand ||
+      !formData.price ||
+      !formData.quantity
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+    // #2: concatenate quantity and unit
+    const fullQuantity = `${formData.quantity} ${formData.unit}`;
+    // #3: prepare price string
+    const priceString = `$${parseFloat(formData.price).toFixed(2)}`;
+
+    // #4: prepare product data for submission
+    const productData = {
+      ...formData,
+      quantity: fullQuantity,
+      price: priceString,
+    };
+    // #5: submit
+    try {
+      const response = await axios.post(BaseUrl, productData);
+      if (response.status === 201) {
+        alert("Product added successfully!");
+        setIsProductsFormVisible(false);
+        fetchProducts(); // refresh product list
+      } else {
+        alert("Failed to add product. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error adding product:", error);
+      alert("An error occurred while adding the product.");
+    }
+  };
+
+  // handle click edit button
+  const handleOnEdit = (product) => {
+    setIsEditMode(true);
+    setIsProductsFormVisible(true);
+    // I could have fetched the product details from the backend using /products/:id endpoint
+    // but since I already have the product data in the frontend, I will use it to populate the form
+    setFormData({
+      productName: product.productName,
+      brand: product.brand,
+      price: parsePrice(product.price).toString(),
+      image: product.image,
+      quantity: product.inventoryQuantity,
+      unit:
+        productList.find((p) => p._id === product.id)?.quantity.split(" ")[1] ||
+        "", // just to get the unit from existing product quantity and add it to the form
+      _id: product.id,
+    });
+  };
+
+  // handle edit product
+  const handleUpdateProduct = async () => {
+    // #1: validate inputs
+    if (
+      !formData.productName ||
+      !formData.brand ||
+      !formData.price ||
+      !formData.quantity
+    ) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+    // #2: concatenate quantity and unit
+    const fullQuantity = `${formData.quantity} ${formData.unit}`;
+    // #3: prepare price string
+    const priceString = `$${parseFloat(formData.price).toFixed(2)}`;
+    // #4: prepare product data for submission
+    const productData = {
+      ...formData,
+      quantity: fullQuantity,
+      price: priceString,
+    };
+    // #5: submit
+    // console.log(`Updating product ${formData._id} with data:`, productData);
+    try {
+      const response = await axios.patch(
+        `${BaseUrl}/${formData._id}`,
+        productData
+      );
+      if (response.status === 200) {
+        alert(`Product ${formData.productName} updated successfully!`);
+        setIsProductsFormVisible(false);
+        fetchProducts(); // refresh product list
+      } else {
+        alert(
+          `Failed to update product ${formData.productName}. Please try again.`
+        );
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+      alert(
+        `An error occurred while updating the product ${formData.productName}.`
+      );
+    }
+  };
+
+  // handle delete product
+  const handleDeleteProduct = async (productId) => {
+    const confirmDelete = window.confirm("Confirm delete product?");
+    if (!confirmDelete) return;
+    try {
+      const response = await axios.delete(`${BaseUrl}/${productId}`);
+      if (response.status === 200) {
+        alert("Product deleted successfully!");
+        fetchProducts(); // refresh product list
+      } else {
+        alert("Failed to delete product. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("An error occurred while deleting the product.");
+    }
+  };
+
+  // handle reset form
+  const resetForm = () => {
+    setFormData({
+      productName: "",
+      brand: "",
+      price: "",
+      image: "",
+      quantity: "",
+      unit: "",
+      _id: "",
+    });
+    setIsEditMode(false);
+  };
+
+  /* 
+    //
+    //
+    //
+      Event Handlers (Old) project 01
+    */
   // handler #1: Handle adding quantity (Add/Remove)
   const handleQuantityChange = (productId, value, collection) => {
     // collection: "products" or "cart"
     // products logic
     if (collection === "products") {
       const updatedProducts = productList.map((product) => {
-        if (product.id === productId) {
+        if (product._id === productId) {
           return {
             ...product,
             salesQuantity: updateQuantity(
@@ -120,7 +317,7 @@ export default function GroceriesAppContainer({ products }) {
       // #2: Update product inventory quantity accordingly
       setProductList((prevProducts) =>
         prevProducts.map((product) =>
-          product.id === productId
+          product._id === productId
             ? {
                 ...product,
                 inventoryQuantity:
@@ -136,7 +333,7 @@ export default function GroceriesAppContainer({ products }) {
   // handler #2: Add to cart
   const handleAddToCart = (productId) => {
     const productToAdd = productList.find(
-      (product) => product.id === productId
+      (product) => product._id === productId
     );
     if (!productToAdd) return;
     // #1:
@@ -163,7 +360,7 @@ export default function GroceriesAppContainer({ products }) {
         ...prevCart,
         // create a new cart item
         {
-          id: productToAdd.id,
+          id: productToAdd._id,
           productName: productToAdd.productName,
           brand: productToAdd.brand,
           quantity: productToAdd.salesQuantity,
@@ -178,14 +375,14 @@ export default function GroceriesAppContainer({ products }) {
     // #5: reset sales quantity after adding the item to cart
     setProductList((prevProducts) =>
       prevProducts.map((product) =>
-        product.id === productId ? { ...product, salesQuantity: 0 } : product
+        product._id === productId ? { ...product, salesQuantity: 0 } : product
       )
     );
 
     // #6: reduce inventory quantity
     setProductList((prevProducts) =>
       prevProducts.map((product) =>
-        product.id === productId
+        product._id === productId
           ? {
               ...product,
               inventoryQuantity:
@@ -218,7 +415,7 @@ export default function GroceriesAppContainer({ products }) {
     // #3: Restore inventory quantity back to products list
     setProductList((prevProducts) =>
       prevProducts.map((product) =>
-        product.id === cartItemToRemove.id
+        product._id === cartItemToRemove.id
           ? {
               ...product,
               inventoryQuantity:
@@ -241,7 +438,7 @@ export default function GroceriesAppContainer({ products }) {
     // #1: Restore inventory quantities in one go (to avoid multiple state updates and async issues)
     const updatedProducts = [...productList];
     productList.forEach((product) => {
-      const cartItem = cart.find((item) => item.id === product.id);
+      const cartItem = cart.find((item) => item.id === product._id);
       if (cartItem) {
         updatedProducts[productList.indexOf(product)] = {
           ...product,
@@ -286,12 +483,36 @@ export default function GroceriesAppContainer({ products }) {
         cartCount={cart.length}
         handleToggleCartAppearance={handleToggleCartAppearance}
       />
+      <button
+        onClick={() => setIsProductsFormVisible((prev) => !prev)}
+        style={{ marginTop: "10px" }}
+      >
+        {isProductsFormVisible
+          ? isEditMode
+            ? "Close Edit Product Form"
+            : "Close Add Product Form"
+          : "Add New Product"}
+      </button>
       <div className="GroceriesApp-Container">
+        {isProductsFormVisible && (
+          <ProductsForm
+            {...formData}
+            isEditMode={isEditMode}
+            handleCancel={() => {
+              setIsProductsFormVisible(false);
+              resetForm();
+            }}
+            handleOnChange={handleOnChange}
+            handleOnSubmit={handleOnSubmit}
+          />
+        )}
         <ProductsContainer
           products={productList}
           handleQuantityChange={handleQuantityChange}
           handleAddToCart={handleAddToCart}
           isCartVisible={isCartVisible}
+          handleOnEdit={handleOnEdit}
+          handleDeleteProduct={handleDeleteProduct}
         />
         {/* 
         I moved the conditional rendering for the cart into its own component, I guess this makes it cleaner and more reusable
