@@ -40,7 +40,7 @@ server.get("/", (req, res) => {
   );
 });
 
-// Get all Products - GET /products
+// Get all Products
 server.get("/products", async (request, response) => {
   try {
     const products = await Product.find();
@@ -53,7 +53,7 @@ server.get("/products", async (request, response) => {
   }
 });
 
-// Add a new Product - POST /products
+// Add a new Product
 server.post("/products", async (request, response) => {
   const { productName, brand, image, price, quantity } = request.body;
   try {
@@ -76,7 +76,7 @@ server.post("/products", async (request, response) => {
   }
 });
 
-// Delete a Product - DELETE /products/:id
+// Delete a Product
 server.delete("/products/:id", async (request, response) => {
   const productId = request.params.id;
   try {
@@ -93,7 +93,7 @@ server.delete("/products/:id", async (request, response) => {
   }
 });
 
-// Get a single Product by ID - GET /products/:id
+// Get a single Product by ID
 server.get("/products/:id", async (request, response) => {
   const productId = request.params.id;
   try {
@@ -110,7 +110,7 @@ server.get("/products/:id", async (request, response) => {
   }
 });
 
-// Update a Product by ID - PUT /products/:id
+// Update a Product by ID
 server.patch("/products/:id", async (request, response) => {
   const productId = request.params.id;
   const { productName, brand, image, price, quantity } = request.body;

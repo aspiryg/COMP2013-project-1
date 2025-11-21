@@ -1,5 +1,6 @@
 export default function QuantityCounter({
   quantity,
+  stringQuantity,
   handleQuantityChange,
   id,
   collection,
@@ -9,7 +10,10 @@ export default function QuantityCounter({
       <button onClick={() => handleQuantityChange(id, -1, collection)}>
         -
       </button>
-      <span>{quantity}</span>
+      <span>
+        {quantity} {stringQuantity && stringQuantity.split(" ")[1]}
+        {/* just to display the unit */}
+      </span>
       <button onClick={() => handleQuantityChange(id, 1, collection)}>+</button>
     </div>
   );

@@ -5,6 +5,7 @@ export default function ProductCard({
   brand,
   image,
   salesQuantity,
+  quantity,
   price,
   handleQuantityChange,
   _id: id,
@@ -20,6 +21,7 @@ export default function ProductCard({
       <img src={image} alt={productName} />
       <p>{brand}</p>
       <QuantityCounter
+        stringQuantity={quantity}
         quantity={salesQuantity}
         handleQuantityChange={handleQuantityChange}
         id={id}

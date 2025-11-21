@@ -12,12 +12,12 @@ export default function GroceriesAppContainer() {
   // state #1: Product List State
   const [productList, setProductList] = useState([]);
   const [formData, setFormData] = useState({
-    productName: "",
+    productName: "", // I could have stored the initial state of the formData in independent variable since I used it in two places
     brand: "",
     price: "",
     image: "",
     quantity: "",
-    unit: "", // this field is not stored in the backend, it's just for the form (while submission it will be concatenated with quantity)
+    unit: "", // this field is not stored in the backend, it's just for the form (during submission it will be concatenated with quantity)
     _id: "", //
   });
 
@@ -54,6 +54,13 @@ export default function GroceriesAppContainer() {
     }
     return newQuantity;
   }
+
+  /*
+   * Project 2 handlers
+   *
+   *
+   *
+   */
 
   // Handler functions
   const fetchProducts = async () => {
@@ -107,15 +114,29 @@ export default function GroceriesAppContainer() {
   // handle add new product.
   const handleAddNewProduct = async () => {
     // #1: validate inputs
+    /*
+      I could have extracted this validation logic into its own function to avoid repetition in the add & edit handlers
+    */
     if (
       !formData.productName ||
       !formData.brand ||
       !formData.price ||
       !formData.quantity
     ) {
-      alert("Please fill in all required fields.");
+      alert("Please fill all required fields.");
       return;
     }
+
+    // to make sure user does not enter negative values for quantity and price
+    if (formData.quantity < 0) {
+      alert("Quantity cannot be negative.");
+      return;
+    }
+    if (formData.price < 0) {
+      alert("Price cannot be negative.");
+      return;
+    }
+
     // #2: concatenate quantity and unit
     const fullQuantity = `${formData.quantity} ${formData.unit}`;
     // #3: prepare price string
@@ -171,9 +192,20 @@ export default function GroceriesAppContainer() {
       !formData.price ||
       !formData.quantity
     ) {
-      alert("Please fill in all required fields.");
+      alert("Please fill all required fields.");
       return;
     }
+
+    // negative values check
+    if (formData.quantity < 0) {
+      alert("Quantity cannot be negative.");
+      return;
+    }
+    if (formData.price < 0) {
+      alert("Price cannot be negative.");
+      return;
+    }
+
     // #2: concatenate quantity and unit
     const fullQuantity = `${formData.quantity} ${formData.unit}`;
     // #3: prepare price string
@@ -241,9 +273,11 @@ export default function GroceriesAppContainer() {
   };
 
   /* 
-    //
-    //
-    //
+    **
+    **
+    **
+    **
+    **
       Event Handlers (Old) project 01
     */
   // handler #1: Handle adding quantity (Add/Remove)
@@ -261,15 +295,6 @@ export default function GroceriesAppContainer() {
               0,
               product.inventoryQuantity
             ),
-            // I extracted this logic into its own function above to avoid repetition
-            // // prevent negative quantity
-            // value < 0 && product.salesQuantity <= 0
-            //   ? 0
-            //   : // prevent having salesQuantity more than product inventory quantity
-            //   value > 0 && product.salesQuantity >= product.inventoryQuantity
-            //   ? (alert("Cannot exceed available stock quantity."),
-            //     product.salesQuantity)
-            //   : product.salesQuantity + value,
           };
         }
         return product;
@@ -283,12 +308,6 @@ export default function GroceriesAppContainer() {
         if (item.id === productId) {
           return {
             ...item,
-            // another way to prevent negative quantity & exceeding max quantity (available stock)
-            // quantity: Math.min(
-            //   Math.max(0, item.quantity + value),
-            //   item.maxQuantity
-            // ),
-
             quantity: updateQuantity(item.quantity, value, 0, item.maxQuantity),
           };
         }
@@ -315,14 +334,17 @@ export default function GroceriesAppContainer() {
       }
 
       // #2: Update product inventory quantity accordingly
+
       setProductList((prevProducts) =>
         prevProducts.map((product) =>
           product._id === productId
             ? {
                 ...product,
+                // There is a bug here, when product quantity is 0, I can't return items back to inventory: TODO: fix it later
                 inventoryQuantity:
-                  product.inventoryQuantity &&
-                  product.inventoryQuantity - value,
+                  product.inventoryQuantity >= 0
+                    ? product.inventoryQuantity - value
+                    : product.inventoryQuantity,
               }
             : product
         )
@@ -483,9 +505,14 @@ export default function GroceriesAppContainer() {
         cartCount={cart.length}
         handleToggleCartAppearance={handleToggleCartAppearance}
       />
+      {/* toggle products form button */}
       <button
         onClick={() => setIsProductsFormVisible((prev) => !prev)}
-        style={{ marginTop: "10px" }}
+        style={{
+          marginTop: "10px",
+          backgroundColor: isProductsFormVisible ? "#ff6666" : "#4CAF50",
+          padding: "10px 20px",
+        }}
       >
         {isProductsFormVisible
           ? isEditMode
@@ -494,6 +521,8 @@ export default function GroceriesAppContainer() {
           : "Add New Product"}
       </button>
       <div className="GroceriesApp-Container">
+        {/* overlay to darken background when form is open */}
+        {isProductsFormVisible && <div className="overlay"></div>}
         {isProductsFormVisible && (
           <ProductsForm
             {...formData}

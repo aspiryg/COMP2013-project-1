@@ -81,14 +81,19 @@ export default function ProductsForm({
           </div>
           <div className="form-group">
             {/* I added this input just for fun*/}
-            <label htmlFor="unit">Unit:</label>
-            <input
-              type="text"
+            <label>Unit:</label>
+            <select
               name="unit"
+              id="unit"
               value={unit}
               onChange={handleOnChange}
-              placeholder="Enter unit (e.g., kg, lb)"
-            />
+            >
+              <option value="">Select unit</option>
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="lb">lb</option>
+              <option value="pcs">pcs</option>
+            </select>
           </div>
         </div>
         <div
