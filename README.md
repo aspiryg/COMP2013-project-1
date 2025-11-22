@@ -8,13 +8,13 @@
 
 ## Project overview
 
-This the second iteration of the Grocery Shopping App, which is a simple grocery shopping app built for the COMP2013 Project 2 assignment. The app lets users browse an inventory of grocery products, add items to a cart, change quantities, and check out.
+This the second iteration of the Grocery Shopping App, which is a simple grocery shopping app built for the COMP2013 Project 2 assignment. This iteration connects to a backend API to perform CRUD operations on the products. The backend API is built using Node.js and Express, the database used is MongoDB, and the frontend is built using React.
 
-## I used built upon the code from the previous assignment (Project #1) as a starter, and added several new features and improvements as per the project requirements and challenges.
+### I built this project upon the code from the previous assignment (Project #1) as a starter, and tried to keep the same functionality and UI/UX as much as possible while changing the code to connect to the backend API.
 
-## What I added / implemented
+## Improvements and additions:
 
-Below are the main features I added or implemented beyond the base starter:
+Below are the main features I added or implemented beyond the basic project requirements:
 
 1. **Backward compatibility with the previous project**
 
